@@ -617,7 +617,7 @@ FiducialsNode::FiducialsNode() : Node("fiducials_node")
     vis_msgs = this->declare_parameter("vis_msgs", false);
 
     topic_sub_cam_image = this->declare_parameter("topic_sub_cam_image", "/camera/image");
-    topic_sub_cam_info = this->declare_parameter("topic_sub_cam_image", "/camera/camera_info");
+    topic_sub_cam_info = this->declare_parameter("topic_sub_cam_info", "/camera/camera_info");
 
     std::string str;
     std::vector<std::string> strs;
