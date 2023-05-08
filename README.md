@@ -1,3 +1,4 @@
+# This branch contains a working version for ROS2 Humble of the  [UbiquityRobotics/fiducials](https://github.com/UbiquityRobotics/fiducials) package. Which is based on the foxy port created by [agutenkunst](https://github.com/agutenkunst/fiducials)
 
 # Simultaneous Localization and Mapping Using Fiducial Markers
 Travis:  [![Build Status](https://travis-ci.org/UbiquityRobotics/fiducials.svg?branch=kinetic-devel)](https://travis-ci.org/UbiquityRobotics/fiducials)
