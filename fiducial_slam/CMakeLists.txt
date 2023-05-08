@@ -1,97 +1,99 @@
-cmake_minimum_required(VERSION 2.8.3)
+cmake_minimum_required(VERSION 3.8)
 project(fiducial_slam)
 
-find_package(catkin REQUIRED COMPONENTS
-  roscpp
-  tf2_geometry_msgs
-  tf2_ros
-  tf2
-  visualization_msgs
-  cv_bridge
-  sensor_msgs
-  std_msgs
-  fiducial_msgs
-  genmsg
-)
+# Default to C99
+if(NOT CMAKE_C_STANDARD)
+  set(CMAKE_C_STANDARD 99)
+endif()
+
+# Default to C++17
+if(NOT CMAKE_CXX_STANDARD)
+  set(CMAKE_CXX_STANDARD 17)
+endif()
+
+if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+  add_compile_options(-Wall -Wextra -Wpedantic)
+endif()
+
+# find dependencies
+find_package(ament_cmake REQUIRED)
+
+find_package(rclcpp REQUIRED)
+
+find_package(tf2_geometry_msgs REQUIRED)
+find_package(tf2_ros REQUIRED)
+find_package(tf2 REQUIRED)
+
+find_package(visualization_msgs REQUIRED)
+
+find_package(cv_bridge REQUIRED)
+
+find_package(sensor_msgs REQUIRED)
+find_package(std_msgs REQUIRED)
+find_package(fiducial_msgs REQUIRED)
+
+find_package(image_transport REQUIRED)
+
+find_package(std_srvs REQUIRED)
+
+find_package(builtin_interfaces REQUIRED)
+find_package(rosidl_default_generators REQUIRED)
 
 find_package(OpenCV REQUIRED)
 
-##############
-## Services ##
-##############
-
-## Generate services in the 'srv' folder
-add_service_files(
-  FILES
-  AddFiducial.srv
-)
-
-## Generate added messages and services with any dependencies listed here
-generate_messages(
-  DEPENDENCIES
+set(DEPENDENCIES
+  rclcpp
+  sensor_msgs
   std_msgs
+  visualization_msgs
+  fiducial_msgs
+  geometry_msgs
+  cv_bridge
+  tf2_ros
+  image_transport
+  tf2_geometry_msgs
+  std_srvs
 )
 
-###########
-## Build ##
-###########
-
-add_definitions(-std=c++11)
-
-include_directories(${catkin_INCLUDE_DIRS} include)
-catkin_package(INCLUDE_DIRS include
-  DEPENDS OpenCV)
-
-include_directories(${OpenCV_INCLUDE_DIRS})
-
-add_executable(fiducial_slam src/fiducial_slam.cpp
-               src/map.cpp src/transform_with_variance.cpp)
-add_dependencies(fiducial_slam ${${PROJECT_NAME}_EXPORTED_TARGETS}
-                 ${catkin_EXPORTED_TARGETS})
-
-target_link_libraries(fiducial_slam ${catkin_LIBRARIES} ${OpenCV_LIBS})
-
-#############
-## Install ##
-#############
-
-## Mark executables and/or libraries for installation
-install(TARGETS fiducial_slam
-   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+# -------------- Include headers --------------
+include_directories(
+        PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
 )
 
-install(DIRECTORY launch/
-        DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/launch
-)
+add_executable(fiducial_slam_node 
+                src/fiducial_slam.cpp 
+                src/map.cpp
+                src/transform_with_variance.cpp
+                src/observation.cpp)
+ament_target_dependencies(fiducial_slam_node ${DEPENDENCIES} OpenCV)
 
-install(FILES fiducials.rviz
-        DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
-)
+# -------------- Install --------------
+install(
+        DIRECTORY include/
+        DESTINATION include/
+        FILES_MATCHING PATTERN "*.h*"
+        PATTERN ".git" EXCLUDE)
 
-###########
-## Tests ##
-###########
+# install(DIRECTORY
+#         resources
+#         DESTINATION share/${PROJECT_NAME}
+#         )
 
-if(CATKIN_ENABLE_TESTING)
-        find_package(catkin REQUIRED COMPONENTS
-          rostest roscpp sensor_msgs tf2_ros image_transport cv_bridge)
+install(TARGETS
+        fiducial_slam_node
+        DESTINATION share/${PROJECT_NAME})
 
-        # Tests need c++11
-        add_definitions(-std=c++11)
-	
-	catkin_add_gtest(transform_var_test test/transform_var_test.cpp src/transform_with_variance)
-	target_link_libraries(transform_var_test ${catkin_LIBRARIES})
-
-        add_rostest(test/create_map_aruco.xml)
-        add_rostest(test/init_map_aruco.xml)
-
-        add_rostest_gtest(auto_init_403_test
-           test/auto_init_403.test
-           test/auto_init_403_test.cpp)
-        target_link_libraries(auto_init_403_test
-            ${catkin_LIBRARIES}
-            ${OpenCV_LIBS})
-
+if(BUILD_TESTING)
+  find_package(ament_lint_auto REQUIRED)
+  # the following line skips the linter which checks for copyrights
+  # comment the line when a copyright and license is added to all source files
+  set(ament_cmake_copyright_FOUND TRUE)
+  # the following line skips cpplint (only works in a git repo)
+  # comment the line when this package is in a git repo and when
+  # a copyright and license is added to all source files
+  set(ament_cmake_cpplint_FOUND TRUE)
+  ament_lint_auto_find_test_dependencies()
 endif()
+
+ament_package()

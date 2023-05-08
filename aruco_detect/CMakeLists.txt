@@ -1,73 +1,76 @@
-
-cmake_minimum_required(VERSION 2.8.3)
+cmake_minimum_required(VERSION 3.8)
 project(aruco_detect)
 
-find_package(catkin REQUIRED COMPONENTS
-  roscpp
-  tf2_geometry_msgs
-  tf2_ros
-  tf2
-  visualization_msgs
-  image_transport
-  cv_bridge
-  sensor_msgs
-  std_msgs
-  fiducial_msgs
-  dynamic_reconfigure
-)
+if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+  add_compile_options(-Wall -Wextra -Wpedantic)
+endif()
+
+# find dependencies
+find_package(ament_cmake REQUIRED)
+
+find_package(rclcpp REQUIRED)
+
+find_package(tf2_geometry_msgs REQUIRED)
+find_package(tf2_ros REQUIRED) 
+find_package(tf2 REQUIRED)
+
+find_package(visualization_msgs REQUIRED)
+find_package(vision_msgs REQUIRED)
+find_package(image_transport REQUIRED)
+find_package(cv_bridge REQUIRED)
+find_package(sensor_msgs REQUIRED)
+find_package(std_msgs REQUIRED)
+find_package(std_srvs REQUIRED)
+find_package(fiducial_msgs REQUIRED)
+find_package(geometry_msgs REQUIRED)
 
 find_package(OpenCV REQUIRED)
 
-generate_dynamic_reconfigure_options(cfg/DetectorParams.cfg)
-
-catkin_package(INCLUDE_DIRS DEPENDS OpenCV)
-
-###########
-## Build ##
-###########
-
-add_definitions(-std=c++11)
-
-include_directories(${catkin_INCLUDE_DIRS})
-include_directories(${OpenCV_INCLUDE_DIRS})
-
-add_executable(aruco_detect src/aruco_detect.cpp)
-
-add_dependencies(aruco_detect ${${PROJECT_NAME}_EXPORTED_TARGETS}
-                 ${catkin_EXPORTED_TARGETS})
-
-target_link_libraries(aruco_detect ${catkin_LIBRARIES} ${OpenCV_LIBS})
-
-#############
-## Install ##
-#############
-
-## Mark executables and/or libraries for installation
-install(TARGETS aruco_detect
-   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+set(DEPENDENCIES
+  rclcpp
+  sensor_msgs
+  std_msgs
+  std_srvs
+  visualization_msgs
+  vision_msgs
+  fiducial_msgs
+  geometry_msgs
+  cv_bridge
+  tf2_ros
+  image_transport
+  tf2_geometry_msgs
 )
 
-catkin_install_python(PROGRAMS scripts/create_markers.py
-        DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
+# -------------- Include headers --------------
+include_directories(
+        PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
 )
-install(DIRECTORY launch/
-        DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/launch
-) 
 
-###########
-## Tests ##
-###########
+add_executable(aruco_detect_node src/aruco_detect.cpp )
+ament_target_dependencies(aruco_detect_node ${DEPENDENCIES} OpenCV)
 
-if(CATKIN_ENABLE_TESTING)
-        find_package(rostest REQUIRED)
+# -------------- Install --------------
+install(
+        DIRECTORY include/
+        DESTINATION include/
+        FILES_MATCHING PATTERN "*.h*"
+        PATTERN ".git" EXCLUDE)
 
-        # Tests need c++11
-        add_definitions(-std=c++11)
-        
-        add_rostest_gtest(aruco_images_test 
-          test/aruco_images.test 
-          test/aruco_images_test.cpp)
-        target_link_libraries(aruco_images_test ${catkin_LIBRARIES} ${OpenCV_LIBS})
+install(TARGETS
+        aruco_detect_node
+        DESTINATION lib/${PROJECT_NAME})
+
+if(BUILD_TESTING)
+  find_package(ament_lint_auto REQUIRED)
+  # the following line skips the linter which checks for copyrights
+  # comment the line when a copyright and license is added to all source files
+  set(ament_cmake_copyright_FOUND TRUE)
+  # the following line skips cpplint (only works in a git repo)
+  # comment the line when this package is in a git repo and when
+  # a copyright and license is added to all source files
+  set(ament_cmake_cpplint_FOUND TRUE)
+  ament_lint_auto_find_test_dependencies()
 endif()
+
+ament_package()

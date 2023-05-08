@@ -1,0 +1,96 @@
+from launch import LaunchDescription
+from launch.actions import DeclareLaunchArgument
+from launch_ros.actions import Node
+from launch.substitutions import LaunchConfiguration
+
+
+def generate_launch_description():
+    """
+    This launch file launches the aruco_detect node. 
+    """
+
+    # -------------------------------------
+    # Launch arguments
+    # -------------------------------------
+
+    launch_arguments = []
+
+    dictionary_arg: DeclareLaunchArgument = DeclareLaunchArgument(
+        name="dictionary",
+        default_value="7",
+        description="The aruco dictionary to use. Possible values: 0 (DICT_4X4_50), 1 (DICT_4X4_100), 2 (DICT_4X4_250), 3 (DICT_4X4_1000), 4 (DICT_5X5_50), 5 (DICT_5X5_100), 6 (DICT_5X5_250), 7 (DICT_5X5_1000), 8 (DICT_6X6_50), 9 (DICT_6X6_100), 10 (DICT_6X6_250), 11 (DICT_6X6_1000), 12 (DICT_7X7_50), 13 (DICT_7X7_100), 14 (DICT_7X7_250), 15 (DICT_7X7_1000), 16 (DICT_ARUCO_ORIGINAL)."
+    )
+    launch_arguments.append(dictionary_arg)
+
+    fiducial_len_arg: DeclareLaunchArgument = DeclareLaunchArgument(
+        name="fiducial_len",
+        default_value="0.14",
+        description="The length of one side of a fiducial in meters, used by the pose estimation."
+    )
+    launch_arguments.append(fiducial_len_arg)
+
+    fiducial_len_override_arg: DeclareLaunchArgument = DeclareLaunchArgument(
+        name="fiducial_len_override",
+        default_value="",
+        description="A string expressing exceptions to fiducial_len. This can contain individual fiducial IDs, or ranges of them. Example: '1-10: 0.05, 12: 0.06' sets the length of fiducials 1 to 10 to 5cm and the length of fiducial 12 to 6cm."
+    )
+    launch_arguments.append(fiducial_len_override_arg)
+
+    ignore_fiducials_arg: DeclareLaunchArgument = DeclareLaunchArgument(
+        name="ignore_fiducials",
+        default_value="",
+        description="A string expressing fiducials to be ignored. This can contain individual fiducial IDs, or ranges of them. Example: '1-10, 12' ignores fiducials 1 to 10 and 12. "
+    )
+    launch_arguments.append(ignore_fiducials_arg)
+
+    publish_images_arg: DeclareLaunchArgument = DeclareLaunchArgument(
+        name="publish_images",
+        default_value=True,
+        description="If set, images will be published with the detected markers shown."
+    )
+    launch_arguments.append(publish_images_arg)
+
+    # These next parameters don't have an official description. 
+    # So I'm guessing what they change based on the code i read.
+    
+    # Not sure why one wouldn't want to execute the pose estimation,
+    # as this seems the purpose of the node.
+    do_pose_estimation_arg: DeclareLaunchArgument = DeclareLaunchArgument(
+        name="do_pose_estimation",
+        default_value=True,
+        description="If set, pose estimation will be executed"
+    )
+    launch_arguments.append(do_pose_estimation_arg)
+
+    vis_msgs_arg: DeclareLaunchArgument = DeclareLaunchArgument(
+        name="vis_msgs",
+        default_value=True,
+        description="If set, the node will publish messages from vision_msgs (vision_msgs/msg/Detection2DArray), these are standardised msgs instead of the custom fiducials_msgs"
+    )
+    launch_arguments.append(vis_msgs_arg)
+
+    # -------------------------------------
+    # Launch executables
+    # -------------------------------------
+
+    launch_executables = []
+
+    aruco_detect_node: Node = Node(
+        package='aruco_detect',
+            namespace='aruco_detect',
+            executable='aruco_detect',
+            name='aruco_detect',
+            parameters=[{
+                "use_sim_time": LaunchConfiguration("use_sim_time"),
+            }]
+    )
+    launch_executables.append(aruco_detect_node)
+
+    return LaunchDescription([
+
+        # Launch arguments
+        *launch_arguments,
+
+        # Nodes, executables and event handlers
+        *launch_executables,
+    ])
