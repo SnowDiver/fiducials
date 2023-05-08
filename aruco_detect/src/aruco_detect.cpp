@@ -94,6 +94,9 @@ class FiducialsNode: public rclcpp::Node
     bool enable_detections;
     bool vis_msgs;
 
+    std::string topic_sub_cam_image;
+    std::string topic_sub_cam_info;
+
     double fiducial_len;
 
     bool doPoseEstimation;
