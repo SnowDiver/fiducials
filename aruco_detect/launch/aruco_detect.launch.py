@@ -79,6 +79,20 @@ def generate_launch_description():
     )
     launch_arguments.append(vis_msgs_arg)
 
+    topic_sub_cam_image_arg: DeclareLaunchArgument = DeclareLaunchArgument(
+        name="topic_sub_cam_image",
+        default_value="/cam/color/image_raw",
+        description="subscribed camera image topic"
+    )
+    launch_arguments.append(topic_sub_cam_image_arg)
+
+    topic_sub_cam_info_arg: DeclareLaunchArgument = DeclareLaunchArgument(
+        name="topic_sub_cam_info",
+        default_value="/cam/color/camera_info",
+        description="subscribed camera info topic"
+    )
+    launch_arguments.append(topic_sub_cam_info_arg)
+
     # -------------------------------------
     # Launch executables
     # -------------------------------------

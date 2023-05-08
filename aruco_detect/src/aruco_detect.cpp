@@ -613,6 +613,9 @@ FiducialsNode::FiducialsNode() : Node("fiducials_node")
     publishFiducialTf = this->declare_parameter("publish_fiducial_tf", true);
     vis_msgs = this->declare_parameter("vis_msgs", false);
 
+    topic_sub_cam_image = this->declare_parameter("topic_sub_cam_image", "/camera/image");
+    topic_sub_cam_info = this->declare_parameter("topic_sub_cam_image", "/camera/camera_info");
+
     std::string str;
     std::vector<std::string> strs;
 
@@ -676,12 +679,12 @@ FiducialsNode::FiducialsNode() : Node("fiducials_node")
     //                        &FiducialsNode::imageCallback, this);
 
     img_sub = image_transport::create_subscription(
-    this, "/camera/image", std::bind(&FiducialsNode::imageCallback, this, std::placeholders::_1), hints.getTransport());
+    this, topic_sub_cam_image, std::bind(&FiducialsNode::imageCallback, this, std::placeholders::_1), hints.getTransport());
 
     vertices_sub = this->create_subscription<fiducial_msgs::msg::FiducialArray>("fiducial_vertices", 1,
                      std::bind(&FiducialsNode::poseEstimateCallback, this, std::placeholders::_1));
 
-    caminfo_sub = this->create_subscription<sensor_msgs::msg::CameraInfo>("/camera/camera_info", 1,
+    caminfo_sub = this->create_subscription<sensor_msgs::msg::CameraInfo>(topic_sub_cam_info, 1,
                      std::bind(&FiducialsNode::camInfoCallback, this, std::placeholders::_1));
 
     ignore_sub = this->create_subscription<std_msgs::msg::String>("ignore_fiducials", 1,
