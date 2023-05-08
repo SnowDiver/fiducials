@@ -9,11 +9,21 @@ def generate_launch_description():
     This launch file launches the aruco_detect node. 
     """
 
+    g_default_true = LaunchConfiguration('default_true', default=True)
+    g_default_false = LaunchConfiguration('default_false', default=False)
+
     # -------------------------------------
     # Launch arguments
     # -------------------------------------
 
     launch_arguments = []
+
+    use_sim_time_arg = DeclareLaunchArgument(
+        name="use_sim_time",
+        default_value="true",
+        description="Whether to use simulation time",
+    )
+    launch_arguments.append(use_sim_time_arg)
 
     dictionary_arg: DeclareLaunchArgument = DeclareLaunchArgument(
         name="dictionary",
@@ -45,7 +55,7 @@ def generate_launch_description():
 
     publish_images_arg: DeclareLaunchArgument = DeclareLaunchArgument(
         name="publish_images",
-        default_value=True,
+        default_value=g_default_true,
         description="If set, images will be published with the detected markers shown."
     )
     launch_arguments.append(publish_images_arg)
@@ -57,14 +67,14 @@ def generate_launch_description():
     # as this seems the purpose of the node.
     do_pose_estimation_arg: DeclareLaunchArgument = DeclareLaunchArgument(
         name="do_pose_estimation",
-        default_value=True,
+        default_value=g_default_true,
         description="If set, pose estimation will be executed"
     )
     launch_arguments.append(do_pose_estimation_arg)
 
     vis_msgs_arg: DeclareLaunchArgument = DeclareLaunchArgument(
         name="vis_msgs",
-        default_value=True,
+        default_value=g_default_true,
         description="If set, the node will publish messages from vision_msgs (vision_msgs/msg/Detection2DArray), these are standardised msgs instead of the custom fiducials_msgs"
     )
     launch_arguments.append(vis_msgs_arg)
@@ -78,7 +88,7 @@ def generate_launch_description():
     aruco_detect_node: Node = Node(
         package='aruco_detect',
             namespace='aruco_detect',
-            executable='aruco_detect',
+            executable='aruco_detect_node',
             name='aruco_detect',
             parameters=[{
                 "use_sim_time": LaunchConfiguration("use_sim_time"),
