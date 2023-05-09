@@ -93,6 +93,35 @@ def generate_launch_description():
     )
     launch_arguments.append(topic_sub_cam_info_arg)
 
+    intrinsics_override_enable_arg: DeclareLaunchArgument = DeclareLaunchArgument(
+        name="intrinsics_override.enable",
+        default_value=g_default_false,
+        description="if set to true, will overide the camera info msg. Will use the intrinsics_override.w, intrinsics_override.h and intrinsics_override.fov params."
+    )
+    launch_arguments.append(intrinsics_override_enable_arg)
+
+    intrinsics_override_fov_arg: DeclareLaunchArgument = DeclareLaunchArgument(
+        name="intrinsics_override.fov",
+        default_value=LaunchConfiguration("fov", default=0.9799),
+        description="Horizontal Field of View, used if intrinsics_override.enable is true."
+    )
+    launch_arguments.append(intrinsics_override_fov_arg)
+
+    intrinsics_override_w_arg: DeclareLaunchArgument = DeclareLaunchArgument(
+        name="intrinsics_override.w",
+        default_value=LaunchConfiguration("w", default=1920),
+        description="Width, used if intrinsics_override.enable is true."
+    )
+    launch_arguments.append(intrinsics_override_w_arg)
+
+    intrinsics_override_h_arg: DeclareLaunchArgument = DeclareLaunchArgument(
+        name="intrinsics_override.h",
+        default_value=LaunchConfiguration("h", default=1080),
+        description="Heigth, used if intrinsics_override.enable is true."
+    )
+    launch_arguments.append(intrinsics_override_h_arg)
+
+
     # -------------------------------------
     # Launch executables
     # -------------------------------------
@@ -106,6 +135,15 @@ def generate_launch_description():
             name='aruco_detect',
             parameters=[{
                 "use_sim_time": LaunchConfiguration("use_sim_time"),
+                topic_sub_cam_image_arg.name: LaunchConfiguration(topic_sub_cam_image_arg.name),
+                topic_sub_cam_info_arg.name: LaunchConfiguration(topic_sub_cam_info_arg.name),
+                dictionary_arg.name: LaunchConfiguration(dictionary_arg.name),
+                fiducial_len_arg.name: LaunchConfiguration(fiducial_len_arg.name),
+                publish_images_arg.name: LaunchConfiguration(publish_images_arg.name),
+                intrinsics_override_enable_arg.name: LaunchConfiguration(intrinsics_override_enable_arg.name),
+                intrinsics_override_fov_arg.name: LaunchConfiguration(intrinsics_override_fov_arg.name),
+                intrinsics_override_w_arg.name: LaunchConfiguration(intrinsics_override_w_arg.name),
+                intrinsics_override_h_arg.name: LaunchConfiguration(intrinsics_override_h_arg.name),
             }]
     )
     launch_executables.append(aruco_detect_node)

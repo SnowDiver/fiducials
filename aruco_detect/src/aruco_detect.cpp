@@ -97,6 +97,11 @@ class FiducialsNode: public rclcpp::Node
     std::string topic_sub_cam_image;
     std::string topic_sub_cam_info;
 
+    bool intrinsics_override_enable;
+    float fov_h;
+    int w;
+    int h;
+
     double fiducial_len;
 
     bool doPoseEstimation;
@@ -328,6 +333,30 @@ void FiducialsNode::camInfoCallback(const sensor_msgs::msg::CameraInfo::SharedPt
     }
 
     if (msg->k != std::array<double, 9>({0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0})) {
+        
+
+        // This overrides the camera_info msg, 
+        // this is needed when using ignition gazebo as the cam info from the sim is incorrect.
+        if(intrinsics_override_enable) {
+            float fx, fy, cx, cy;
+            cx = 0.5 * w;
+            cy = 0.5 * h;
+            fx = w / (2.0 * std::tan(fov_h / 2.0));
+            fy = fx;  //h/(2.0*std::tan(fov_h/2.0));
+            
+            msg->k[0] = fx;
+            msg->k[2] = cx;
+            msg->k[4] = fy;
+            msg->k[5] = cy;
+            msg->k[8] = 1.0;
+
+            msg->p[0] = fx;
+            msg->p[2] = cx;
+            msg->p[5] = fy;
+            msg->p[6] = cy;
+            msg->p[10] = 1.0;
+        }
+        
         for (int i=0; i<3; i++) {
             for (int j=0; j<3; j++) {
                 cameraMatrix.at<double>(i, j) = msg->k[i*3+j];
@@ -618,6 +647,11 @@ FiducialsNode::FiducialsNode() : Node("fiducials_node")
 
     topic_sub_cam_image = this->declare_parameter("topic_sub_cam_image", "/camera/image");
     topic_sub_cam_info = this->declare_parameter("topic_sub_cam_info", "/camera/camera_info");
+
+    intrinsics_override_enable = this->declare_parameter("intrinsics_override.enable", false);
+    fov_h = this->declare_parameter("intrinsics_override.fov_h", 0.9799);
+    w = this->declare_parameter("intrinsics_override.w", 1920);
+    h = this->declare_parameter("intrinsics_override.h", 1080);
 
     std::string str;
     std::vector<std::string> strs;

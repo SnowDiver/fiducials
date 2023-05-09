@@ -13,7 +13,7 @@ namespace fiducial_slam
         this->getParams();
 
         msg_sub_tf_arr = this->create_subscription<fiducial_msgs::msg::FiducialTransformArray>(
-            "/fiducial_transforms", 10,  std::bind(&FiducialSlamNode::transformCallback, this, std::placeholders::_1)
+            "/aruco_detect/fiducial_transforms", 10,  std::bind(&FiducialSlamNode::transformCallback, this, std::placeholders::_1)
         );
 
         RCLCPP_INFO(this->get_logger(), "Fiducial Slam ready");
