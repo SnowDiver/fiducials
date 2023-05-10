@@ -156,7 +156,9 @@ def generate_launch_description():
             map_frame_arg.name: LaunchConfiguration(map_frame_arg.name),
             odom_frame_arg.name: LaunchConfiguration(odom_frame_arg.name),
             base_frame_arg.name: LaunchConfiguration(base_frame_arg.name),
-            publish_6dof_pose_arg.name: LaunchConfiguration(publish_6dof_pose_arg.name)
+            publish_6dof_pose_arg.name: LaunchConfiguration(publish_6dof_pose_arg.name),
+            map_file_arg.name: LaunchConfiguration(map_file_arg.name),
+            publish_tf_arg.name: LaunchConfiguration(publish_tf_arg.name),
         }]
     )
     launch_executables.append(aruco_detect_node)
