@@ -72,7 +72,10 @@ namespace fiducial_slam
         return true;
     }
 
-    FiducialSlamNode::~FiducialSlamNode() { /** */ }
+    FiducialSlamNode::~FiducialSlamNode() { 
+        // Save created map on shutdown!
+        fiducialMap.saveMap();
+    }
 }
 
 int main(int argc, char * argv[])
