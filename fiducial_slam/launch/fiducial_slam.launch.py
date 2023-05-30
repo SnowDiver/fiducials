@@ -74,7 +74,7 @@ def generate_launch_description():
 
     publish_6dof_pose_arg: DeclareLaunchArgument = DeclareLaunchArgument(
         name="publish_6dof_pose",
-        default_value=g_default_true,
+        default_value=g_default_false,
         description="If true, unmodified poses are published, otherwise they are constrained to have zero z translation and only the yaw component of rotation."
     )
     launch_arguments.append(publish_6dof_pose_arg)
