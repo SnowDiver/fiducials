@@ -147,11 +147,11 @@ def generate_launch_description():
 
     launch_executables = []
 
-    aruco_detect_node: Node = Node(
+    fiducial_slam_node: Node = Node(
         package='fiducial_slam',
         namespace='fiducial_slam',
         executable='fiducial_slam_node',
-        name='fiducial_slam_node',
+        # name='fiducial_slam',
         parameters=[{
             map_frame_arg.name: LaunchConfiguration(map_frame_arg.name),
             odom_frame_arg.name: LaunchConfiguration(odom_frame_arg.name),
@@ -159,9 +159,10 @@ def generate_launch_description():
             publish_6dof_pose_arg.name: LaunchConfiguration(publish_6dof_pose_arg.name),
             map_file_arg.name: LaunchConfiguration(map_file_arg.name),
             publish_tf_arg.name: LaunchConfiguration(publish_tf_arg.name),
+            # systematic_error_arg.name: LaunchConfiguration(systematic_error_arg.name),
         }]
     )
-    launch_executables.append(aruco_detect_node)
+    launch_executables.append(fiducial_slam_node)
 
     return LaunchDescription([
 

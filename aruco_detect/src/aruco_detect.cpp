@@ -265,7 +265,7 @@ FiducialsNode::param_change_callback(const std::vector<rclcpp::Parameter> & para
   rcl_interfaces::msg::SetParametersResult result;
   result.successful = true;
   for (const auto & parameter : parameters) {
-    RCLCPP_INFO(this->get_logger(), "Parameter '%s' changed.", parameter.get_name().c_str());
+    // RCLCPP_INFO(this->get_logger(), "Parameter '%s' changed.", parameter.get_name().c_str());
   }
 
   try
@@ -380,7 +380,7 @@ void FiducialsNode::imageCallback(const sensor_msgs::msg::Image::ConstSharedPtr 
         return; //return without doing anything
     }
 
-    RCLCPP_INFO(this->get_logger(), "Got image");
+    // RCLCPP_INFO(this->get_logger(), "Got image");
 
     fiducial_msgs::msg::FiducialArray fva;
     fva.header.stamp = msg->header.stamp;
@@ -390,11 +390,11 @@ void FiducialsNode::imageCallback(const sensor_msgs::msg::Image::ConstSharedPtr 
         cv_ptr = cv_bridge::toCvCopy(msg, sensor_msgs::image_encodings::BGR8);
 
         aruco::detectMarkers(cv_ptr->image, dictionary, corners, ids, detectorParams);
-        RCLCPP_INFO(this->get_logger(), "Detected %d markers", (int)ids.size());
+        // RCLCPP_INFO(this->get_logger(), "Detected %d markers", (int)ids.size());
 
         for (size_t i=0; i<ids.size(); i++) {
 	    if (std::count(ignoreIds.begin(), ignoreIds.end(), ids[i]) != 0) {
-	        RCLCPP_INFO(this->get_logger(), "Ignoring id %d", ids[i]);
+	        // RCLCPP_INFO(this->get_logger(), "Ignoring id %d", ids[i]);
 	        continue;
 	    }
             fiducial_msgs::msg::Fiducial fid;
@@ -464,45 +464,45 @@ void FiducialsNode::poseEstimateCallback(const fiducial_msgs::msg::FiducialArray
                 aruco::drawAxis(cv_ptr->image, cameraMatrix, distortionCoeffs,
                                 rvecs[i], tvecs[i], (float)fiducial_len);
 
-                RCLCPP_INFO(this->get_logger(), "Detected id %d T %.2f %.2f %.2f R %.2f %.2f %.2f", ids[i],
-                         tvecs[i][0], tvecs[i][1], tvecs[i][2],
-                         rvecs[i][0], rvecs[i][1], rvecs[i][2]);
+                // RCLCPP_INFO(this->get_logger(), "Detected id %d T %.2f %.2f %.2f R %.2f %.2f %.2f", ids[i],
+                        //  tvecs[i][0], tvecs[i][1], tvecs[i][2],
+                        //  rvecs[i][0], rvecs[i][1], rvecs[i][2]);
 
                 if (std::count(ignoreIds.begin(), ignoreIds.end(), ids[i]) != 0) {
-                    RCLCPP_INFO(this->get_logger(), "Ignoring id %d", ids[i]);
+                    // RCLCPP_INFO(this->get_logger(), "Ignoring id %d", ids[i]);
                     continue;
                 }
 
                 double angle = norm(rvecs[i]);
                 Vec3d axis = rvecs[i] / angle;
-                RCLCPP_INFO(this->get_logger(), "angle %f axis %f %f %f",
-                         angle, axis[0], axis[1], axis[2]);
+                // RCLCPP_INFO(this->get_logger(), "angle %f axis %f %f %f",
+                        //  angle, axis[0], axis[1], axis[2]);
 
-		double object_error =
-			(reprojectionError[i] / dist(corners[i][0], corners[i][2])) *
-			(norm(tvecs[i]) / fiducial_len);
+                double object_error =
+                    (reprojectionError[i] / dist(corners[i][0], corners[i][2])) *
+                    (norm(tvecs[i]) / fiducial_len);
 
-		// Standard ROS vision_msgs
-		fiducial_msgs::msg::FiducialTransform ft;
-		tf2::Quaternion q;
-		if (vis_msgs) {
-		    vision_msgs::msg::Detection2D vm;
-		    vision_msgs::msg::ObjectHypothesisWithPose vmh;
-		    vmh.hypothesis.class_id = ids[i];
-		    vmh.hypothesis.score = exp(-2 * object_error); // [0, infinity] -> [1,0]
-	            vmh.pose.pose.position.x = tvecs[i][0];
-		    vmh.pose.pose.position.y = tvecs[i][1];
-		    vmh.pose.pose.position.z = tvecs[i][2];
-		    q.setRotation(tf2::Vector3(axis[0], axis[1], axis[2]), angle);
-		    vmh.pose.pose.orientation.w = q.w();
-		    vmh.pose.pose.orientation.x = q.x();
-		    vmh.pose.pose.orientation.y = q.y();
-		    vmh.pose.pose.orientation.z = q.z();
+                // Standard ROS vision_msgs
+                fiducial_msgs::msg::FiducialTransform ft;
+                tf2::Quaternion q;
+                if (vis_msgs) {
+                    vision_msgs::msg::Detection2D vm;
+                    vision_msgs::msg::ObjectHypothesisWithPose vmh;
+                    vmh.hypothesis.class_id = ids[i];
+                    vmh.hypothesis.score = exp(-2 * object_error); // [0, infinity] -> [1,0]
+                        vmh.pose.pose.position.x = tvecs[i][0];
+                    vmh.pose.pose.position.y = tvecs[i][1];
+                    vmh.pose.pose.position.z = tvecs[i][2];
+                    q.setRotation(tf2::Vector3(axis[0], axis[1], axis[2]), angle);
+                    vmh.pose.pose.orientation.w = q.w();
+                    vmh.pose.pose.orientation.x = q.x();
+                    vmh.pose.pose.orientation.y = q.y();
+                    vmh.pose.pose.orientation.z = q.z();
 
-		    vm.results.push_back(vmh);
-		    vma.detections.push_back(vm);
-		}
-		else {
+                    vm.results.push_back(vmh);
+                    vma.detections.push_back(vm);
+                }
+                else {
                     ft.fiducial_id = ids[i];
 
                     ft.transform.translation.x = tvecs[i][0];
@@ -520,33 +520,38 @@ void FiducialsNode::poseEstimateCallback(const fiducial_msgs::msg::FiducialArray
                         (reprojectionError[i] / dist(corners[i][0], corners[i][2])) *
                         (norm(tvecs[i]) / fiducial_len);
 
+                    // if (ft.transform.translation.z > 6 || ft.transform.translation.x > 6) {
+                    //      RCLCPP_INFO(this->get_logger(), "Marker not added to TFA, to far away: (%s, %s)", std::to_string(ft.transform.translation.z).c_str(), std::to_string(ft.transform.translation.x).c_str());
+                    //     continue;
+                    // }
+
                     fta.transforms.push_back(ft);
-		}
+                }
 
                 // Publish tf for the fiducial relative to the camera
                 if (publishFiducialTf) {
-		    if (vis_msgs) {
-                    	geometry_msgs::msg::TransformStamped ts;
-                    	ts.transform.translation.x = tvecs[i][0];
-                    	ts.transform.translation.y = tvecs[i][1];
-                    	ts.transform.translation.z = tvecs[i][2];
-                    	ts.transform.rotation.w = q.w();
-                    	ts.transform.rotation.x = q.x();
-                    	ts.transform.rotation.y = q.y();
-                    	ts.transform.rotation.z = q.z();
-                    	ts.header.frame_id = frameId;
-                    	ts.header.stamp = msg->header.stamp;
-                    	ts.child_frame_id = "fiducial_" + std::to_string(ids[i]);
-                    	broadcaster->sendTransform(ts);
-		    }
-		    else {
-			geometry_msgs::msg::TransformStamped ts;
-                    	ts.transform = ft.transform;
-                    	ts.header.frame_id = frameId;
-                    	ts.header.stamp = msg->header.stamp;
-                    	ts.child_frame_id = "fiducial_" + std::to_string(ft.fiducial_id);
-                    	broadcaster->sendTransform(ts);
-		    }
+                    if (vis_msgs) {
+                                geometry_msgs::msg::TransformStamped ts;
+                                ts.transform.translation.x = tvecs[i][0];
+                                ts.transform.translation.y = tvecs[i][1];
+                                ts.transform.translation.z = tvecs[i][2];
+                                ts.transform.rotation.w = q.w();
+                                ts.transform.rotation.x = q.x();
+                                ts.transform.rotation.y = q.y();
+                                ts.transform.rotation.z = q.z();
+                                ts.header.frame_id = frameId;
+                                ts.header.stamp = msg->header.stamp;
+                                ts.child_frame_id = "fiducial_" + std::to_string(ids[i]);
+                                broadcaster->sendTransform(ts);
+                    }
+                    else {
+                    geometry_msgs::msg::TransformStamped ts;
+                                ts.transform = ft.transform;
+                                ts.header.frame_id = frameId;
+                                ts.header.stamp = msg->header.stamp;
+                                ts.child_frame_id = "fiducial_" + std::to_string(ft.fiducial_id);
+                                broadcaster->sendTransform(ts);
+                    }
                 }
             }
         }
@@ -565,6 +570,8 @@ void FiducialsNode::poseEstimateCallback(const fiducial_msgs::msg::FiducialArray
 
 void FiducialsNode::handleIgnoreString(const std::string& str)
 {
+    RCLCPP_INFO(this->get_logger(), "Ignoring fiducials %s ", str.c_str());
+
     /*
     ignogre fiducials can take comma separated list of individual
     fiducial ids or ranges, eg "1,4,8,9-12,30-40"
@@ -602,11 +609,11 @@ bool FiducialsNode::enableDetectionsCallback(const std_srvs::srv::SetBool::Reque
     enable_detections = req->data;
     if (enable_detections){
         res->message = "Enabled aruco detections.";
-        RCLCPP_INFO(this->get_logger(), "Enabled aruco detections.");
+        // RCLCPP_INFO(this->get_logger(), "Enabled aruco detections.");
     }
     else {
         res->message = "Disabled aruco detections.";
-        RCLCPP_INFO(this->get_logger(), "Disabled aruco detections.");
+        // RCLCPP_INFO(this->get_logger(), "Disabled aruco detections.");
     }
     
     res->success = true;
@@ -618,7 +625,7 @@ FiducialsNode::FiducialsNode() : Node("fiducials_node")
 {
     std::cerr << "CTOR\n";
 
-    RCLCPP_INFO(this->get_logger(), "Start");
+    // RCLCPP_INFO(this->get_logger(), "Start");
 
     broadcaster = std::make_shared<tf2_ros::TransformBroadcaster>(this);
     // img_trans = std::make_shared<image_transport::ImageTransport>(this);
@@ -678,15 +685,14 @@ FiducialsNode::FiducialsNode() : Node("fiducials_node")
             if (range.size() == 2) {
                int start = std::stoi(range[0]);
                int end = std::stoi(range[1]);
-               RCLCPP_INFO(this->get_logger(), "Setting fiducial id range %d - %d length to %f",
-                        start, end, len);
+            //    // RCLCPP_INFO(this->get_logger(), "Setting fiducial id range %d - %d length to %f", start, end, len);
                for (int j=start; j<=end; j++) {
                    fiducialLens[j] = len;
                }
             }
             else if (range.size() == 1){
                int fid = std::stoi(range[0]);
-               RCLCPP_INFO(this->get_logger(), "Setting fiducial id %d length to %f", fid, len);
+            //    // RCLCPP_INFO(this->get_logger(), "Setting fiducial id %d length to %f", fid, len);
                fiducialLens[fid] = len;
             }
             else {
@@ -928,7 +934,7 @@ FiducialsNode::FiducialsNode() : Node("fiducials_node")
 
     parameter_callback_handle = this->add_on_set_parameters_callback(std::bind(&FiducialsNode::param_change_callback, this, std::placeholders::_1));
 
-    RCLCPP_INFO(this->get_logger(), "Aruco detection ready");
+    // RCLCPP_INFO(this->get_logger(), "Aruco detection ready");
 }
 
 int main(int argc, char * argv[])

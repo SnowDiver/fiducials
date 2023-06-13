@@ -30,6 +30,9 @@
 #include <opencv2/calib3d.hpp>
 #include <opencv2/highgui.hpp>
 
+#include <std_srvs/srv/empty.hpp>
+#include "fiducial_msgs/srv/add_fiducial.hpp"
+
 #include <list>
 #include <string>
 
@@ -48,6 +51,12 @@ namespace fiducial_slam
 
         //subscribers
         rclcpp::Subscription<fiducial_msgs::msg::FiducialTransformArray>::SharedPtr msg_sub_tf_arr;
+
+        rclcpp::Service<std_srvs::srv::Empty>::SharedPtr clearSrv;
+        rclcpp::Service<fiducial_msgs::srv::AddFiducial>::SharedPtr addFidSrv;
+
+        bool clearMap(const std_srvs::srv::Empty::Request::SharedPtr req, std_srvs::srv::Empty::Response::SharedPtr res);
+        bool addFiducial(const fiducial_msgs::srv::AddFiducial::Request::SharedPtr req, fiducial_msgs::srv::AddFiducial::Response::SharedPtr res);
 
         void transformCallback(const fiducial_msgs::msg::FiducialTransformArray::SharedPtr msg);
 

@@ -84,8 +84,8 @@ Map::Map() : Node("map")
     markerPub = this->create_publisher<visualization_msgs::msg::Marker>("/fiducials", 100);
     mapPub = this->create_publisher<fiducial_msgs::msg::FiducialMapEntryArray>("/fiducial_map", 1);
 
-    clearSrv = this->create_service<std_srvs::srv::Empty>("clear_map", std::bind(&Map::clearCallback, this, std::placeholders::_1, std::placeholders::_2));
-    addSrv = this->create_service<fiducial_msgs::srv::AddFiducial>("add_fiducial", std::bind(&Map::addFiducialCallback, this, std::placeholders::_1, std::placeholders::_2));
+    clearSrv = this->create_service<std_srvs::srv::Empty>("/fiducial_slam/map/clear_map", std::bind(&Map::clearCallback, this, std::placeholders::_1, std::placeholders::_2));
+    addSrv = this->create_service<fiducial_msgs::srv::AddFiducial>("/fiducial_slam/map/add_fiducial", std::bind(&Map::addFiducialCallback, this, std::placeholders::_1, std::placeholders::_2));
 
     mapFrame = this->declare_parameter("map_frame", "map");
     odomFrame = this->declare_parameter("odom_frame", "odom");
@@ -136,8 +136,7 @@ Map::Map() : Node("map")
 // Update map with a set of observations
 
 void Map::update(std::vector<Observation> &obs, const rclcpp::Time &time) {
-    RCLCPP_INFO(this->get_logger(), "Updating map with %d observations. Map has %d fiducials", (int)obs.size(),
-             (int)fiducials.size());
+    // RCLCPP_INFO(this->get_logger(), "Updating map with %d observations. Map has %d fiducials", (int)obs.size(), (int)fiducials.size());
 
     frameNum++;
 
@@ -180,8 +179,7 @@ void Map::updateMap(const std::vector<Observation> &obs, const rclcpp::Time &tim
         {
             tf2::Vector3 trans = T_mapFid.transform.getOrigin();
 
-            RCLCPP_INFO(this->get_logger(), "Estimate of %d %lf %lf %lf var %lf %lf", o.fid, trans.x(), trans.y(),
-                     trans.z(), o.T_camFid.variance, T_mapFid.variance);
+            // RCLCPP_INFO(this->get_logger(), "Estimate of %d %lf %lf %lf var %lf %lf", o.fid, trans.x(), trans.y(), trans.z(), o.T_camFid.variance, T_mapFid.variance);
 
             if (std::isnan(trans.x()) || std::isnan(trans.y()) || std::isnan(trans.z())) {
                 RCLCPP_WARN(this->get_logger(), "Skipping NAN estimate\n");
@@ -189,6 +187,7 @@ void Map::updateMap(const std::vector<Observation> &obs, const rclcpp::Time &tim
             };
         }
 
+        // New Fiducial found
         if (fiducials.find(o.fid) == fiducials.end()) {
             RCLCPP_INFO(this->get_logger(), "New fiducial %d", o.fid);
             fiducials[o.fid] = Fiducial(o.fid, T_mapFid);
@@ -243,7 +242,7 @@ int Map::updatePose(std::vector<Observation> &obs, const rclcpp::Time &time,
 
     if (lookupTransform(obs[0].T_camFid.frame_id_, baseFrame, time, T_camBase.transform)) {
         tf2::Vector3 c = T_camBase.transform.getOrigin();
-        RCLCPP_INFO(this->get_logger(), "camera->base   %lf %lf %lf", c.x(), c.y(), c.z());
+        // RCLCPP_INFO(this->get_logger(), "camera->base   %lf %lf %lf", c.x(), c.y(), c.z());
         T_camBase.variance = 1.0;
     } else {
         RCLCPP_ERROR(this->get_logger(), "Cannot determine tf from camera to robot\n");
@@ -251,7 +250,7 @@ int Map::updatePose(std::vector<Observation> &obs, const rclcpp::Time &time,
 
     if (lookupTransform(baseFrame, obs[0].T_camFid.frame_id_, time, T_baseCam.transform)) {
         tf2::Vector3 c = T_baseCam.transform.getOrigin();
-        RCLCPP_INFO(this->get_logger(), "base->camera   %lf %lf %lf", c.x(), c.y(), c.z());
+        // RCLCPP_INFO(this->get_logger(), "base->camera   %lf %lf %lf", c.x(), c.y(), c.z());
         T_baseCam.variance = 1.0;
     } else {
         RCLCPP_ERROR(this->get_logger(), "Cannot determine tf from robot to camera\n");
@@ -283,8 +282,7 @@ int Map::updatePose(std::vector<Observation> &obs, const rclcpp::Time &time,
             p.variance = s1 + s2 + s3 + systematic_error;
             o.T_camFid.variance = p.variance;
 
-            RCLCPP_INFO(this->get_logger(), "Pose %d %lf %lf %lf %lf %lf %lf %lf", o.fid, position.x(), position.y(),
-                     position.z(), roll, pitch, yaw, p.variance);
+            // RCLCPP_INFO(this->get_logger(), "Pose %d %lf %lf %lf %lf %lf %lf %lf", o.fid, position.x(), position.y(), position.z(), roll, pitch, yaw, p.variance);
 
             // drawLine(fid.pose.getOrigin(), o.position);
 
@@ -306,7 +304,7 @@ int Map::updatePose(std::vector<Observation> &obs, const rclcpp::Time &time,
     }
 
     if (numEsts == 0) {
-        RCLCPP_INFO(this->get_logger(), "Finished frame - no estimates\n");
+        // RCLCPP_INFO(this->get_logger(), "Finished frame - no estimates\n");
         return numEsts;
     }
 
@@ -316,8 +314,7 @@ int Map::updatePose(std::vector<Observation> &obs, const rclcpp::Time &time,
         double r, p, y;
         T_mapBase.transform.getBasis().getRPY(r, p, y);
 
-        RCLCPP_INFO(this->get_logger(), "Pose ALL %lf %lf %lf %lf %lf %lf %f", trans.x(), trans.y(), trans.z(), r, p, y,
-                 T_mapBase.variance);
+        // RCLCPP_INFO(this->get_logger(), "Pose ALL %lf %lf %lf %lf %lf %lf %f", trans.x(), trans.y(), trans.z(), r, p, y, T_mapBase.variance);
     }
 
     tf2::Stamped<TransformWithVariance> basePose = T_mapBase;
@@ -345,7 +342,7 @@ int Map::updatePose(std::vector<Observation> &obs, const rclcpp::Time &time,
             outFrame = odomFrame;
 
             tf2::Vector3 c = odomTransform.getOrigin();
-            RCLCPP_INFO(this->get_logger(), "odom   %lf %lf %lf", c.x(), c.y(), c.z());
+            // RCLCPP_INFO(this->get_logger(), "odom   %lf %lf %lf", c.x(), c.y(), c.z());
         }
         else {
             // Don't publish anything if map->odom was requested and is unavailaable
@@ -372,7 +369,7 @@ int Map::updatePose(std::vector<Observation> &obs, const rclcpp::Time &time,
         publishTf();
     }
 
-    RCLCPP_INFO(this->get_logger(), "Finished frame. Estimates %d\n", numEsts);
+    // RCLCPP_INFO(this->get_logger(), "Finished frame. Estimates %d\n", numEsts);
     return numEsts;
 }
 
@@ -442,6 +439,18 @@ void Map::autoInit(const std::vector<Observation> &obs, const rclcpp::Time &time
             T.setData(T_baseCam * T);
         }
 
+        // Take into account position of robot in the world if known TODO:
+        tf2::Transform T_mapBase;
+        if (lookupTransform(mapFrame, baseFrame, rclcpp::Time(0), T_mapBase)) {
+            RCLCPP_INFO(this->get_logger(), "mapBase %s, %s", std::to_string(T_mapBase.getOrigin().getX()).c_str(), std::to_string(T_mapBase.getOrigin().getY()).c_str());
+            T.setData(T_mapBase * T);
+        }
+        else {
+            RCLCPP_INFO(this->get_logger(), "Placing robot at the origin");
+        }
+
+        RCLCPP_INFO(this->get_logger(), "mapFid %s, %s", std::to_string(T.transform.getOrigin().getX()).c_str(), std::to_string(T.transform.getOrigin().getY()).c_str());
+
         fiducials[o.fid] = Fiducial(o.fid, T);
     } else {
         for (const Observation &o : obs) {
@@ -449,12 +458,21 @@ void Map::autoInit(const std::vector<Observation> &obs, const rclcpp::Time &time
                 tf2::Stamped<TransformWithVariance> T = o.T_camFid;
 
                 tf2::Vector3 trans = T.transform.getOrigin();
-                RCLCPP_INFO(this->get_logger(), "Estimate of %d from base %lf %lf %lf err %lf", o.fid, trans.x(),
-                         trans.y(), trans.z(), o.T_camFid.variance);
+                RCLCPP_INFO(this->get_logger(), "Estimate of %d from base %lf %lf %lf err %lf", o.fid, trans.x(), trans.y(), trans.z(), o.T_camFid.variance);
 
                 if (lookupTransform(baseFrame, o.T_camFid.frame_id_, tf2_ros::toMsg(o.T_camFid.stamp_),
                                     T_baseCam)) {
                     T.setData(T_baseCam * T);
+                }
+
+                // Take into account position of robot in the world if known TODO:
+                tf2::Transform T_mapBase;
+                if (lookupTransform(mapFrame, baseFrame, rclcpp::Time(0), T_mapBase)) {
+                    RCLCPP_INFO(this->get_logger(), "mapBase %s, %s", std::to_string(T_mapBase.getOrigin().getX()).c_str(), std::to_string(T_mapBase.getOrigin().getY()).c_str());
+                    T.setData(T_mapBase * T);
+                }
+                else {
+                    RCLCPP_INFO(this->get_logger(), "Placing robot at the origin");
                 }
 
                 fiducials[originFid].update(T);
@@ -479,8 +497,7 @@ void Map::handleAddFiducial(const std::vector<Observation> &obs) {
     }
 
     if (fiducials.find(fiducialToAdd) != fiducials.end()) {
-        RCLCPP_INFO(this->get_logger(), "Fiducial %d is already in map - ignoring add request",
-                 fiducialToAdd);
+        RCLCPP_INFO(this->get_logger(), "Fiducial %d is already in map - ignoring add request", fiducialToAdd);
         fiducialToAdd = -1;
         return;
     }

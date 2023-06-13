@@ -144,6 +144,7 @@ def generate_launch_description():
                 intrinsics_override_fov_arg.name: LaunchConfiguration(intrinsics_override_fov_arg.name),
                 intrinsics_override_w_arg.name: LaunchConfiguration(intrinsics_override_w_arg.name),
                 intrinsics_override_h_arg.name: LaunchConfiguration(intrinsics_override_h_arg.name),
+                "ignore_fiducials": "2, 21, 25, 0, 13, 8, 11, 3, 7, 219, 20, 12"
             }]
     )
     launch_executables.append(aruco_detect_node)
