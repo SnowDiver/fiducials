@@ -1,3 +1,8 @@
+from pathlib import Path
+import os
+
+from ament_index_python.packages import get_package_share_directory
+
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument
 from launch_ros.actions import Node
@@ -9,6 +14,9 @@ def generate_launch_description():
     """
     This launch file launches the aruco_detect node. 
     """
+
+    fiducial_slam_share_dir = Path(get_package_share_directory("fiducial_slam"))
+
 
     g_default_true = LaunchConfiguration('default_true', default=True)
     g_default_false = LaunchConfiguration('default_false', default=False)
@@ -29,7 +37,7 @@ def generate_launch_description():
 
     map_file_arg: DeclareLaunchArgument = DeclareLaunchArgument(
         name="map_file",
-        default_value=[EnvironmentVariable('HOME'), "/.ros/slam/map.txt"],
+        default_value=[str(fiducial_slam_share_dir / "resources/map.txt")],
         description="Path to the file containing the generated map."
     )
     launch_arguments.append(map_file_arg)

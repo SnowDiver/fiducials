@@ -77,6 +77,7 @@ install(
 
 install(DIRECTORY
         launch
+        resources
         DESTINATION share/${PROJECT_NAME}
         )
 
